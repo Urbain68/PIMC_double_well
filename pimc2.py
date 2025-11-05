@@ -7,7 +7,7 @@ Ajuster les paramètres dans la section "PARAMÈTRES" ci-dessous.
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
-from math import sqrt
+from math import sqrt, floor
 import os
 
 # -----------------------------
@@ -17,7 +17,7 @@ T_default = 1.0/3.0            # température (en unités réduites V0/kB)
 V0_default = 5.0/3.0           # V0
 a_nm = 0.04                    # paramètre 'a' (nm)
 dt_default = 1e-17             # inutilisé ici
-epsilon_default = 0.03         # pas de déplacement initial
+epsilon_default = 0.05         # pas de déplacement initial
 n_steps_default = 20000        # nombre d'itérations Monte-Carlo
 P_default = 8                  # nombre de beads / "trotters"
 K_default = None               # si None, on utilisera K = P*T**2
@@ -111,6 +111,7 @@ def run_ensemble(n_replicates=None, **sim_kwargs):
     rng = np.random.default_rng()
     results = []
     for i in range(n_replicates):
+        print(i)
         res = metropolis_simulation(rng=np.random.default_rng(rng.integers(1<<30)), **sim_kwargs)
         results.append(res)
 
@@ -241,22 +242,32 @@ def plot_energy_vs_P(P_list, n_replicates=None, n_steps=None, epsilon=None, T=No
 # -----------------------------
 # DENSITÉS ET BARRIÈRE
 # -----------------------------
-def plot_rho_and_barrier(beads_concat, centroids_concat, T=T_default, nbins=200, xlim=(-2.5,2.5),
+def plot_rho_and_barrier(beads_concat, centroids_concat, T=T_default, nbins=200, xlim=(-1.5,1.5),
                          show_beads=True, show_centroid=True, title_suffix=""):
-    xs = np.linspace(xlim[0], xlim[1], 800)
+    xs = np.linspace(xlim[0], xlim[1], 60)
     plt.figure(figsize=(10,5))
 
     # Densités
     plt.subplot(1,2,1)
     if show_beads and beads_concat.size>0:
+        tot_data_beads=0
         data_beads = beads_concat.ravel()
-        kde_beads = gaussian_kde(data_beads)
-        rho_beads = kde_beads(xs)
-        plt.plot(xs, rho_beads, label="rho(beads) (KDE)")
+        rho_beads = np.full_like(xs, 0)
+        for bead in data_beads:
+            if (bead>=-1.5)and(bead<=1.5):
+                j=int(floor((bead+1.5)/0.05))
+                rho_beads[j]+=1 
+                tot_data_beads+=1
+        plt.plot(xs, rho_beads/tot_data_beads, label="rho(beads)")
     if show_centroid and centroids_concat.size>0:
-        kde_cent = gaussian_kde(centroids_concat)
-        rho_cent = kde_cent(xs)
-        plt.plot(xs, rho_cent, label="rho(centroid) (KDE)")
+        rho_cent = np.full_like(xs, 0)
+        tot_data_cent=0
+        for cent in centroids_concat:
+            if (cent>=-1.5)and(cent<=1.5):
+                j=int(floor((cent+1.5)/0.05))
+                rho_cent[j]+=1
+                tot_data_cent+=1
+        plt.plot(xs, rho_cent/tot_data_cent, label="rho(centroid)")
     plt.xlabel("x (unités réduites)")
     plt.ylabel("densité rho(x)")
     plt.title("Densités " + title_suffix)
@@ -296,35 +307,35 @@ def plot_rho_and_barrier(beads_concat, centroids_concat, T=T_default, nbins=200,
 def question_3_find_epsilon():
 
     P = 1
-    eps_list = [0.1,0.2,0.3,0.5,1,2]
+    eps_list = [0.01,0.02,0.03,0.05]
     plot_energy_with_acceptance(eps_list, n_replicates=N_REPLICATES, P=P, n_steps=5000, T=T_default, K=None)
     # imprime suggestion
     print("Règle empirique : acceptance ~ 0.4-0.6 est souvent un bon choix.")
 
 def question_4_energy_vs_P():
 
-    P_list = [1, 2, 4, 8, 16, 32,64,128,256,512]
-    plot_energy_vs_P(P_list, n_replicates=N_REPLICATES, n_steps=15000, epsilon=0.005, T=T_default)
+    P_list = [1, 2, 4, 8, 16, 32]
+    plot_energy_vs_P(P_list, n_replicates=N_REPLICATES, n_steps=15000, epsilon=0.05, T=T_default)
 
 def questions_5_6_compute_rho_and_barrier():
 
     # Choix des conditions:
-    P = 128
-    epsilon = 0.05
+    P = 64
+    epsilon = 0.1
     n_steps = 30000
-    n_replicates = N_REPLICATES
+    n_replicates = 10**2
 
     out = run_ensemble(n_replicates, P=P, n_steps=n_steps, epsilon=epsilon, T=T_default, K=None)
     beads_concat = out['beads_concat']
     centroids_concat = out['centroids_concat']
-    plot_rho_and_barrier(beads_concat, centroids_concat, T=T_default, xlim=(-3,3),
+    plot_rho_and_barrier(beads_concat, centroids_concat, T=T_default, xlim=(-1.5,1.5),
                          title_suffix=f"P{P}_T{T_default}")
 
 def questions_7_8_vary_T_and_C():
 
     # Exemples de températures
     T_list = [0.4, 0.6]  # en unités réduites V0/kB
-    P = 16
+    P = 64
     for T in T_list:
         print(f"Run for T={T}")
         out = run_ensemble(12, P=P, n_steps=20000, epsilon=0.005, T=T, K=None)
@@ -353,7 +364,7 @@ def questions_7_8_vary_T_and_C():
 
 
 if __name__ == "__main__":
-    print("Started. Saved figures in directory", OUT_DIR)
+    print("Started. Saves figures in directory", OUT_DIR)
 
 
     question_3_find_epsilon()
