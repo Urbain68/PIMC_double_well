@@ -13,7 +13,7 @@ import os
 # -----------------------------
 # PARAMÈTRES PAR DÉFAUT
 # -----------------------------
-T_default = 3.0/3.0            # température (en unités réduites V0/kB)
+T_default = 2.0/3.0            # température (en unités réduites V0/kB)
 V0_default = 5.0/3.0           # V0
 a_nm = 0.04                    # paramètre 'a' (nm)
 dt_default = 1e-17             # inutilisé ici
@@ -300,7 +300,7 @@ def plot_rho_and_barrier(beads_concat, centroids_concat,epsilon=epsilon_default,
 def plot_rho_and_barrier_ensemble(beads_concat, centroids_concat, P, T=T_default,
                                   nbins=200, xlim=(-1.5,1.5), title_suffix=""):
     xs_edges = np.linspace(xlim[0], xlim[1], nbins + 1)
-    xs = 0.5 * (xs_edges[:-1] + xs_edges[1:])  # ✅ bin centers
+    xs = 0.5 * (xs_edges[:-1] + xs_edges[1:])  # bin centers
 
     # Split data per replicate
     total_beads = beads_concat.shape[0]
@@ -378,7 +378,7 @@ def plot_rho_and_barrier_ensemble(beads_concat, centroids_concat, P, T=T_default
 def question_3_find_epsilon():
 
     P = 1
-    eps_list = [0.8]
+    eps_list = [0.1,0.5,0.8,1.0]
     plot_energy_with_acceptance(eps_list, n_replicates=N_REPLICATES, P=P, n_steps=5000, T=T_default, K=None)
     # imprime suggestion
     print("Règle empirique : acceptance ~ 0.4-0.6 est souvent un bon choix.")
@@ -391,8 +391,8 @@ def question_4_energy_vs_P():
 def questions_5_6_compute_rho_and_barrier():
 
     P = 32
-    epsilon = 0.8
-    n_steps = 10**6
+    epsilon = 1.0
+    n_steps = 5*10**6
     n_replicates = 5
 
     # First: Single simulation
@@ -403,11 +403,11 @@ def questions_5_6_compute_rho_and_barrier():
                          title_suffix=f"P{P}_T{T_default}_single")
 
     # Second: Ensemble mean ± std
-    print("Running ensemble...")
-    out_ens = run_ensemble(n_replicates, P=P, n_steps=n_steps, epsilon=epsilon, T=T_default, K=None)
-    plot_rho_and_barrier_ensemble(out_ens['beads_concat'], out_ens['centroids_concat'], 
-                                  P=P, T=T_default, 
-                                  title_suffix=f"P{P}_T{T_default}_ensemble")
+    # print("Running ensemble...")
+    # out_ens = run_ensemble(n_replicates, P=P, n_steps=n_steps, epsilon=epsilon, T=T_default, K=None)
+    # plot_rho_and_barrier_ensemble(out_ens['beads_concat'], out_ens['centroids_concat'], 
+    #                               P=P, T=T_default, 
+    #                               title_suffix=f"P{P}_T{T_default}_ensemble")
 
 def questions_7_8_vary_T_and_C():
 
@@ -444,7 +444,7 @@ if __name__ == "__main__":
     print("Started. Saves figures in directory", OUT_DIR)
 
 
-    #question_3_find_epsilon()
+    # question_3_find_epsilon()
 
     #question_4_energy_vs_P()
 
