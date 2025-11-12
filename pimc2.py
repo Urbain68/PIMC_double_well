@@ -1,9 +1,3 @@
-"""
-pimd_plots.py
-Usage : python pimd_plots.py
-Ajuster les paramètres dans la section "PARAMÈTRES" ci-dessous.
-"""
-
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import gaussian_kde
@@ -380,8 +374,6 @@ def question_3_find_epsilon():
     P = 1
     eps_list = [0.1,0.5,0.8,1.0]
     plot_energy_with_acceptance(eps_list, n_replicates=N_REPLICATES, P=P, n_steps=5000, T=T_default, K=None)
-    # imprime suggestion
-    print("Règle empirique : acceptance ~ 0.4-0.6 est souvent un bon choix.")
 
 def question_4_energy_vs_P():
 
@@ -407,37 +399,7 @@ def questions_5_6_compute_rho_and_barrier():
     # out_ens = run_ensemble(n_replicates, P=P, n_steps=n_steps, epsilon=epsilon, T=T_default, K=None)
     # plot_rho_and_barrier_ensemble(out_ens['beads_concat'], out_ens['centroids_concat'], 
     #                               P=P, T=T_default, 
-    #                               title_suffix=f"P{P}_T{T_default}_ensemble")
-
-def questions_7_8_vary_T_and_C():
-
-    # Exemples de températures
-    T_list = [0.4, 0.6]  # en unités réduites V0/kB
-    P = 16
-    for T in T_list:
-        print(f"Run for T={T}")
-        out = run_ensemble(12, P=P, n_steps=10**6, epsilon=0.5, T=T*5.0/3.0, K=None)
-        plot_rho_and_barrier(out['beads_concat'], out['centroids_concat'], T=T, xlim=(-1.5,1.5),
-                             title_suffix=f"P{P}_T{T}")
-
-    # Exemples de C -> ici on illustre C=0.3 et C=0.6 en variant V0 (si on souhaite)
-    # Attention : cela nécessite de reconstruire V(x) si on change V0 ; notre V() prend V0 param.
-    # Pour simplicité on montre comment faire 1 run avec V0 modifié :
-    for C in [0.3, 0.6]:
-        V0_mod = 1.0 / C
-        print(f"Example run with C={C} (V0 set to {V0_mod:.3f} in potential)")
-        # Redéfinir une V locale pour ce run
-        global V
-        def V_local(x, V0=V0_mod, a=1.0):
-            y = x / a
-            return V0 * (y**2 - 1.0)**2
-        V_backup = V
-        V = V_local
-        out = run_ensemble(10, P=16, n_steps=20000, epsilon=0.005, T=0.4*V0_mod, K=None)
-        plot_rho_and_barrier(out['beads_concat'], out['centroids_concat'], T=0.4,
-                             title_suffix=f"C{C}")
-        # restore V
-        V = V_backup
+    #                               title_suffix=f"P{P}_T{T_default}_ensemble
 
 
 if __name__ == "__main__":
@@ -449,7 +411,5 @@ if __name__ == "__main__":
     #question_4_energy_vs_P()
 
     questions_5_6_compute_rho_and_barrier()
-
-    # questions_7_8_vary_T_and_C()
 
     print("Finished")
